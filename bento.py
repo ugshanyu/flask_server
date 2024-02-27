@@ -19,7 +19,7 @@ class VLLM:
         from vllm import AsyncEngineArgs, AsyncLLMEngine
 
         ENGINE_ARGS = AsyncEngineArgs(
-            model='meta-llama/Llama-2-7b-chat-hf',
+            model='ugshanyu/orca-mongol',
             max_model_len=MAX_TOKENS
         )
 
