@@ -21,4 +21,4 @@ def handle_generate(message):
     asyncio.run(generate_text())
 
 if __name__ == '__main__':
-    socketio.run(app)
+    socketio.run(app, port=3000)
