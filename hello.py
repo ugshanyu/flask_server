@@ -5,6 +5,7 @@ import asyncio
 
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins='*')
+llm = openllm.LLM('ugshanyu/mongol-mistral-3')
 
 @app.route('/')
 def index():
@@ -13,7 +14,7 @@ def index():
 @socketio.on('generate')
 def handle_generate(message):
     async def generate_text():
-        llm = openllm.LLM('microsoft/phi-2')
+        
         async for generation in llm.generate_iterator(message['text']):
             socketio.emit('generation', {'text': generation.outputs[0].text})
 
