@@ -1,4 +1,4 @@
 python-socketio>=5.0.4
 aiohttp>=3.7.4
-openllm
-vllm
+openllm>=0.1.0  # Assuming a minimum version, adjust as needed
+vllm>=0.1.0  # Assuming a minimum version, adjust as needed
