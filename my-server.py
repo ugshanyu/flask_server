@@ -19,7 +19,12 @@ async def disconnect(sid):
 @sio.event
 async def my_event(sid, message):
     print("User said" + message['data'])
-    async for generation in llm.generate_iterator(message['data']):
+    async for generation in llm.generate_iterator(
+        message['data'],
+        max_new_tokens=512,
+        temperature=0.2,
+        top_p=0.95
+    ):
         await sio.emit('my_response', {'data': generation.outputs[0].text}, room=sid)
     sio.emit('my_response', {'data': "<end>"}, room=sid)
 
@@ -27,7 +32,12 @@ async def my_event(sid, message):
 async def all(sid, message):
     print("User said: " + message['data'])
     generated_parts = []
-    async for generation in llm.generate_iterator(message['data']):
+    async for generation in llm.generate_iterator(
+        message['data'],
+        max_new_tokens=512,
+        temperature=0.2,
+        top_p=0.95
+    ):
         generated_parts.append(generation.outputs[0].text)
     full_generated_text = ''.join(generated_parts)
     await sio.emit('my_response', {'data': full_generated_text}, room=sid)
