@@ -1,0 +1,4 @@
+python-socketio>=5.0.4
+openai>=0.10.2
+aiohttp>=3.7.4
+vllm
