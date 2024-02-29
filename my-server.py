@@ -22,7 +22,7 @@ async def my_event(sid, message):
     async for generation in llm.generate_iterator(
         message['data'],
         max_new_tokens=512,
-        temperature=0.2,
+        temperature=0.5,
         top_p=0.95
     ):
         await sio.emit('my_response', {'data': generation.outputs[0].text}, room=sid)
@@ -35,7 +35,7 @@ async def all(sid, message):
     async for generation in llm.generate_iterator(
         message['data'],
         max_new_tokens=512,
-        temperature=0.2,
+        temperature=0.5,
         top_p=0.95
     ):
         generated_parts.append(generation.outputs[0].text)
