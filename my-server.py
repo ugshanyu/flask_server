@@ -1,6 +1,6 @@
 from aiohttp import web
 import socketio
-import openai_llm as openllm
+import openllm
 
 sio = socketio.AsyncServer(async_mode='aiohttp')
 app = web.Application()
