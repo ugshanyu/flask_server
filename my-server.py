@@ -1,7 +1,6 @@
 from aiohttp import web
 import socketio
 import openllm
-import aiohttp_cors
 
 
 sio = socketio.AsyncServer(async_mode='aiohttp', cors_allowed_origins="*")
