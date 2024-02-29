@@ -4,23 +4,11 @@ import openllm
 import aiohttp_cors
 
 
-sio = socketio.AsyncServer(async_mode='aiohttp')
+sio = socketio.AsyncServer(async_mode='aiohttp', cors_allowed_origins="http://localhost:3000")
 app = web.Application()
 sio.attach(app)
 
 llm = openllm.LLM('ugshanyu/mongol-mistral-3')
-
-cors = aiohttp_cors.setup(app, defaults={
-    "http://localhost:3000": aiohttp_cors.ResourceOptions(
-        allow_credentials=True,
-        expose_headers="*",
-        allow_headers="*",
-    )
-})
-
-# Apply the CORS config to all routes
-for route in list(app.router.routes()):
-    cors.add(route)
 
 
 @sio.event
