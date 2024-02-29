@@ -26,7 +26,7 @@ async def my_event(sid, message):
         top_p=0.95
     ):
         await sio.emit('my_response', {'data': generation.outputs[0].text}, room=sid)
-    sio.emit('my_response', {'data': "<end>"}, room=sid)
+    await sio.emit('my_response', {'data': "<end>"}, room=sid)
 
 @sio.event
 async def all(sid, message):
