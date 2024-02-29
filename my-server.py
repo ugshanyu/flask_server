@@ -21,6 +21,7 @@ async def my_event(sid, message):
     print("User said" + message['data'])
     async for generation in llm.generate_iterator(message['data']):
         await sio.emit('my_response', {'data': generation.outputs[0].text}, room=sid)
+    sio.emit('my_response', {'data': "<end>"}, room=sid)
 
 if __name__ == '__main__':
     web.run_app(app, port=8080)
