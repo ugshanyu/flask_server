@@ -84,7 +84,7 @@ string_list = list(info_dict.keys())
 #     await sio.emit('my_response', {'data': full_generated_text}, room=sid)
 
 @sio.event
-async def update_info_dict():
+async def update_info_dict(sid, message):
     global info_dict
     global string_list
     try:
