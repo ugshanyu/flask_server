@@ -84,7 +84,7 @@ string_list = list(info_dict.keys())
 #     await sio.emit('my_response', {'data': full_generated_text}, room=sid)
 
 @sio.event
-async def update_info_dict(sid):
+async def update_info_dict():
     global info_dict
     global string_list
     try:
@@ -97,7 +97,7 @@ async def update_info_dict(sid):
         for key in info_dict:
             print(info_dict[key])
     except Exception as e:
-        await sio.emit('info_dict_updated', {'success': False, 'error': str(e)}, room=sid)
+        # await sio.emit('info_dict_updated', {'success': False, 'error': str(e)})
         print(f"Error updating info_dict: {e}")
 
 if __name__ == '__main__':
