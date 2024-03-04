@@ -21,14 +21,21 @@ sio.attach(app)
 #     # Return the most similar string and its similarity score
 #     return string_list[max_index], similarity_scores[max_index]
 
+import ast
+
 async def fetch_info_dict():
     url = 'https://raw.githubusercontent.com/ugshanyu/flask_server/main/hello.json'
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as response:
             if response.status == 200:
-                return await response.json()
+                response_text = await response.text()
+                try:
+                    return ast.literal_eval(response_text)
+                except ValueError:
+                    raise Exception("Failed to convert response to dictionary")
             else:
                 raise Exception(f"Failed to fetch info_dict from API: {response.status}")
+
 
 info_dict = {}
 
