@@ -30,6 +30,7 @@ async def fetch_info_dict():
             if response.status == 200:
                 response_text = await response.text()
                 try:
+                    print(ast.literal_eval(response_text))
                     return ast.literal_eval(response_text)
                 except ValueError:
                     raise Exception("Failed to convert response to dictionary")
