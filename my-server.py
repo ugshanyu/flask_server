@@ -24,7 +24,9 @@ sio.attach(app)
 import ast
 
 async def fetch_info_dict():
+    
     url = 'https://raw.githubusercontent.com/ugshanyu/flask_server/main/hello.json'
+    url = f'https://raw.githubusercontent.com/ugshanyu/flask_server/main/hello.json?{time.time()}'
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as response:
             if response.status == 200:
