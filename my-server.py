@@ -99,10 +99,11 @@ async def update_info_dict(sid, message):
         string_list = list(info_dict.keys())  # Update the string_list as well
         # await sio.emit('info_dict_updated', {'success': True}, room=sid)
         print("Info_dict updated successfully")
-        print(info_dict.keys())
+        print(string_list)
+        
         #print all values
-        for key in info_dict:
-            print(info_dict[key])
+        # for key in info_dict:
+        #     print(info_dict[key])
     except Exception as e:
         # await sio.emit('info_dict_updated', {'success': False, 'error': str(e)})
         print(f"Error updating info_dict: {e}")
