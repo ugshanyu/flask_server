@@ -91,7 +91,7 @@ async def my_event(sid, message):
         input_string = message['data']
 
         #based on the input string, get the top 2 keys from the info_dict
-        top_keys = get_top_keys(input_string, string_list, top_n=2)
+        top_keys = get_top_keys(input_string, string_list, top_n=1)
         print(f"The top 2 keys for '{input_string}' are {top_keys}")
 
         # Get the information for the top 2 keys
