@@ -1,8 +1,9 @@
 from aiohttp import web
 import socketio
-import openllm
-import difflib
+#import openllm
+#import difflib
 import aiohttp
+import time
 
 
 sio = socketio.AsyncServer(async_mode='aiohttp', cors_allowed_origins="*")
@@ -20,6 +21,7 @@ llm = openllm.LLM('ugshanyu/mongol-mistral-3')
     
 #     # Return the most similar string and its similarity score
 #     return string_list[max_index], similarity_scores[max_index]
+
 
 def get_top_keys(sentence, keys, top_n=2):
     # Convert the sentence to lowercase for case-insensitive matching
@@ -42,14 +44,24 @@ def get_top_keys(sentence, keys, top_n=2):
 
     return top_keys
 
+import ast
+
 async def fetch_info_dict():
-    url = 'https://raw.githubusercontent.com/ugshanyu/flask_server/main/hello.json'
+    
+    # url = 'https://raw.githubusercontent.com/ugshanyu/flask_server/main/hello.json'
+    url = 'https://huggingface.co/datasets/ugshanyu/TungalagTamir/raw/main/test'
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as response:
             if response.status == 200:
-                return await response.json()
+                response_text = await response.text()
+                try:
+                    print(ast.literal_eval(response_text))
+                    return ast.literal_eval(response_text)
+                except ValueError:
+                    raise Exception("Failed to convert response to dictionary")
             else:
                 raise Exception(f"Failed to fetch info_dict from API: {response.status}")
+
 
 info_dict = {}
 
@@ -116,7 +128,7 @@ async def my_event(sid, message):
 #     await sio.emit('my_response', {'data': full_generated_text}, room=sid)
 
 @sio.event
-async def update_info_dict(sid):
+async def update_info_dict(sid, message):
     global info_dict
     global string_list
     try:
@@ -124,12 +136,13 @@ async def update_info_dict(sid):
         string_list = list(info_dict.keys())  # Update the string_list as well
         # await sio.emit('info_dict_updated', {'success': True}, room=sid)
         print("Info_dict updated successfully")
-        print(info_dict.keys())
+        print(string_list)
+        
         #print all values
-        for key in info_dict:
-            print(info_dict[key])
+        # for key in info_dict:
+        #     print(info_dict[key])
     except Exception as e:
-        await sio.emit('info_dict_updated', {'success': False, 'error': str(e)}, room=sid)
+        # await sio.emit('info_dict_updated', {'success': False, 'error': str(e)})
         print(f"Error updating info_dict: {e}")
 
 if __name__ == '__main__':
