@@ -1,8 +1,9 @@
 from aiohttp import web
 import socketio
-#import openllm
+import openllm
 #import difflib
 import aiohttp
+import ast
 import time
 
 
@@ -44,7 +45,6 @@ def get_top_keys(sentence, keys, top_n=2):
 
     return top_keys
 
-import ast
 
 async def fetch_info_dict():
     
@@ -99,6 +99,7 @@ async def my_event(sid, message):
             prompt += info_dict[key] + "\n\n"
         
         prompt += "Асуулт: " + input_string + " [/INST]"
+        print(prompt)
 
         # most_similar_string, score = most_similar(input_string, string_list)
         # prompt = info_dict[most_similar_string] + input_string + " [/INST]"
