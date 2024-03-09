@@ -8,7 +8,7 @@ sio = socketio.AsyncServer(async_mode='aiohttp', cors_allowed_origins="*")
 app = web.Application()
 sio.attach(app)
 
-llm = openllm.LLM('ugshanyu/mistral-new-method')
+llm = openllm.LLM('ugshanyu/mongol-mistral-3')
 
 
 def get_top_keys(sentence, keys, top_n=2):
