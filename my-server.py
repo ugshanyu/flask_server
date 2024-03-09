@@ -41,7 +41,7 @@ async def fetch_info_dict():
 info_dict = {}
 
 # Call fetch_info_dict() at the start of the server and update info_dict
-async def load_data():
+async def load_data(app):
     global info_dict
     global string_list
     info_dict = await fetch_info_dict()
