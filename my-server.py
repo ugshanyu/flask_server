@@ -3,6 +3,7 @@ import socketio
 import openllm
 import aiohttp
 import ast
+import asyncio
 
 sio = socketio.AsyncServer(async_mode='aiohttp', cors_allowed_origins="*")
 app = web.Application()
@@ -43,6 +44,7 @@ async def load_data(app):
     global string_list
     info_dict = await fetch_info_dict()
     string_list = list(info_dict.keys())
+    server_ready_event.set()  # Signal that the server is ready
 
 # Schedule the load_data() function to run at the start
 app.on_startup.append(load_data)
@@ -83,9 +85,12 @@ async def my_event(sid, message):
         await sio.emit('my_response', {'data': generation.outputs[0].text}, room=sid)
     await sio.emit('my_response', {'data': "<end>"}, room=sid)
 
+# Create an event object to signal when the server is ready
+server_ready_event = asyncio.Event()
+
 async def send_initial_message(app):
-    # Wait for the server to start and the socket to be ready
-    await sio.wait()
+    # Wait for the server to be ready
+    await server_ready_event.wait()
     # Send a message with the prompt "Hi" to all connected clients
     await sio.emit('my_response', {'data': 'Hi'})
 
