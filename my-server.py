@@ -10,7 +10,6 @@ sio.attach(app)
 
 llm = openllm.LLM('ugshanyu/mongol-mistral-3')
 
-
 def get_top_keys(sentence, keys, top_n=2):
     sentence = sentence.lower()
     key_info = []
@@ -21,7 +20,6 @@ def get_top_keys(sentence, keys, top_n=2):
     key_info.sort(key=lambda x: (-x[1], x[2]))
     top_keys = [key for key, _, _ in key_info[:top_n]]
     return top_keys
-
 
 async def fetch_info_dict():
     url = 'https://huggingface.co/datasets/ugshanyu/TungalagTamir/raw/main/test'
@@ -36,7 +34,6 @@ async def fetch_info_dict():
             else:
                 raise Exception(f"Failed to fetch info_dict from API: {response.status}")
 
-
 # Load the data at server start
 info_dict = {}
 
@@ -49,7 +46,6 @@ async def load_data(app):
 
 # Schedule the load_data() function to run at the start
 app.on_startup.append(load_data)
-
 
 @sio.event
 async def connect(sid, environ):
@@ -77,15 +73,6 @@ async def my_event(sid, message):
             prompt += info_dict[key] + "\n\n"
         prompt += "Асуулт: " + input_string + " [/INST]"
         print(prompt)
-    
-    # elif(message['id'] == "transparent"):
-    #     input_string = message['data']
-    #     top_keys = get_top_keys(input_string, string_list, top_n=1)
-    #     print(f"The top 2 keys for '{input_string}' are {top_keys}")
-    #     for key in top_keys:
-    #         prompt += info_dict[key] + "\n\n"
-    #     prompt += "Асуулт: " + input_string + " [/INST]"
-    #     print(prompt)
 
     async for generation in llm.generate_iterator(
         prompt,
@@ -96,6 +83,14 @@ async def my_event(sid, message):
         await sio.emit('my_response', {'data': generation.outputs[0].text}, room=sid)
     await sio.emit('my_response', {'data': "<end>"}, room=sid)
 
+async def send_initial_message(app):
+    # Wait for the server to start and the socket to be ready
+    await sio.wait()
+    # Send a message with the prompt "Hi" to all connected clients
+    await sio.emit('my_response', {'data': 'Hi'})
+
+# Schedule the send_initial_message() function to run after the server starts
+app.on_startup.append(send_initial_message)
 
 if __name__ == '__main__':
     web.run_app(app, port=8080)
