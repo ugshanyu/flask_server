@@ -69,8 +69,7 @@ async def my_event(sid, message):
     
     if(message['id'] == "Usion"):
         prompt = "<s>[INST]" + message['data'] + "[/INST]"
-    
-    elif(message['id'] == "transparent"):
+    else:
         input_string = message['data']
         top_keys = get_top_keys(input_string, string_list, top_n=1)
         print(f"The top 2 keys for '{input_string}' are {top_keys}")
@@ -78,6 +77,15 @@ async def my_event(sid, message):
             prompt += info_dict[key] + "\n\n"
         prompt += "Асуулт: " + input_string + " [/INST]"
         print(prompt)
+    
+    # elif(message['id'] == "transparent"):
+    #     input_string = message['data']
+    #     top_keys = get_top_keys(input_string, string_list, top_n=1)
+    #     print(f"The top 2 keys for '{input_string}' are {top_keys}")
+    #     for key in top_keys:
+    #         prompt += info_dict[key] + "\n\n"
+    #     prompt += "Асуулт: " + input_string + " [/INST]"
+    #     print(prompt)
 
     async for generation in llm.generate_iterator(
         prompt,
