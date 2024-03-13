@@ -91,7 +91,7 @@ async def my_event(sid, message):
         print(f"The top 2 keys for '{input_string}' are {top_keys}")
         for key in top_keys:
             prompt += info_dict[key] + "\n\n"
-        prompt += "Асуулт: " + input_string + " [/INST]\n"
+        prompt += "Асуулт: " + input_string + " [/INST]"
         print(prompt)
     generated = ""
     async for generation in llm.generate_iterator(
