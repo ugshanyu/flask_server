@@ -6,6 +6,7 @@ import ast
 import asyncio
 import datetime
 import json
+import datetime
 
 sio = socketio.AsyncServer(async_mode='aiohttp', cors_allowed_origins="*")
 app = web.Application()
@@ -59,18 +60,20 @@ async def disconnect(sid):
 async def save_message(user_id, message):
     save_url = 'http://52.221.164.159/save_message'
     message_id = datetime.datetime.now().strftime("%Y%m%d%H%M%S%f")
+    current_date = datetime.datetime.now()  # Using a datetime object
     data = {
         "userId": user_id,
         "id": message_id,
-        "message": message
+        "message": message,
+        "date": current_date  # Storing the datetime object
     }
     async with aiohttp.ClientSession() as session:
         async with session.post(save_url, json=data) as response:
             if response.status == 200:
                 print("Message saved successfully")
             else:
-                # print(response)
                 print(f"Failed to save message: {response.status}")
+
 
 @sio.event
 async def my_event(sid, message):
@@ -90,7 +93,7 @@ async def my_event(sid, message):
         print(f"The top 2 keys for '{input_string}' are {top_keys}")
         for key in top_keys:
             prompt += info_dict[key] + "\n\n"
-        prompt += "Асуулт: " + input_string + " [/INST]"
+        prompt += "Асуулт: " + input_string + " [/INST]\n"
         print(prompt)
     generated = ""
     async for generation in llm.generate_iterator(
