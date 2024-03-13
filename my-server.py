@@ -75,9 +75,9 @@ async def save_message(user_id, message):
 @sio.event
 async def my_event(sid, message):
     print("User said: " + message['data'])
-    print("User id: " + message['userId'])
+    print("User id: " + message['id'])
 
-    asyncio.create_task(save_message(message['userId'], message['data']))
+    asyncio.create_task(save_message(message['id'], message['data']))
 
     prompt = """<s>[INST] Өгүүллэгийг уншаад асуултад хариул. Хэрэв өгүүллэгд багтаагүй хамааралгүй асуулт асуувал мэдэхгүй гэж хариул. Хүний талаар сайн муу гэж дүгнэлт гаргаж болохгүй. Хэрэв хэрэглэгч хэрвээ "Cайн уу", "баярлалаа" гэх мэт энгийн харилцаа өрнүүлэхийг хүсвэл хэрэглэгчтэй эелдгээр харилцаа өрнүүл. 
     Өгүүллэг: """
@@ -101,7 +101,7 @@ async def my_event(sid, message):
     ):
         await sio.emit('my_response', {'data': generation.outputs[0].text}, room=sid)
         generated += generation.outputs[0].text
-    asyncio.create_task(save_message(message['userId'], generated))
+    asyncio.create_task(save_message(message['id'], generated))
     await sio.emit('my_response', {'data': "<end>"}, room=sid)
 
 async def get_all_keys(request):
