@@ -69,6 +69,7 @@ async def save_message(user_id, message):
             if response.status == 200:
                 print("Message saved successfully")
             else:
+                print(response)
                 print(f"Failed to save message: {response.status}")
 
 @sio.event
