@@ -69,7 +69,7 @@ async def save_message(user_id, message):
     }
     async with aiohttp.ClientSession() as session:
         async with session.post(save_url, json=data) as response:
-            if response.status == 200:
+            if response.status == 200 or response.status == 201:
                 print("Message saved successfully")
             else:
                 print(f"Failed to save message: {response.status}")
