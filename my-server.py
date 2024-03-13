@@ -4,6 +4,8 @@ import openllm
 import aiohttp
 import ast
 import asyncio
+import datetime
+import json
 
 sio = socketio.AsyncServer(async_mode='aiohttp', cors_allowed_origins="*")
 app = web.Application()
@@ -35,18 +37,15 @@ async def fetch_info_dict():
             else:
                 raise Exception(f"Failed to fetch info_dict from API: {response.status}")
 
-# Load the data at server start
 info_dict = {}
 
-# Call fetch_info_dict() at the start of the server and update info_dict
 async def load_data(app):
     global info_dict
     global string_list
     info_dict = await fetch_info_dict()
     string_list = list(info_dict.keys())
-    server_ready_event.set()  # Signal that the server is ready
+    server_ready_event.set()
 
-# Schedule the load_data() function to run at the start
 app.on_startup.append(load_data)
 
 @sio.event
@@ -57,14 +56,31 @@ async def connect(sid, environ):
 async def disconnect(sid):
     print('User disconnected:', sid)
 
+async def save_message(user_id, message):
+    save_url = 'http://52.221.164.159/save_message'
+    message_id = datetime.datetime.now().strftime("%Y%m%d%H%M%S%f")
+    data = {
+        "userId": user_id,
+        "id": message_id,
+        "message": message
+    }
+    async with aiohttp.ClientSession() as session:
+        async with session.post(save_url, json=data) as response:
+            if response.status == 200:
+                print("Message saved successfully")
+            else:
+                print(f"Failed to save message: {response.status}")
+
 @sio.event
 async def my_event(sid, message):
     print("User said: " + message['data'])
     print("User id: " + message['id'])
 
-    prompt = """<s>[INST] Өгүүллэг уншаад асуултад хариул. Хэрэв нийтлэлд багтаагүй хамааралгүй асуулт асуувал мэдэхгүй гэж хариул. Хүний талаар сайн муу гэж дүгнэлт гаргаж болохгүй. Хэрэв хэрэглэгч хэрвээ "Cайн уу", "баярлалаа" гэх мэт энгийн харилцаа өрнүүлэхийг хүсвэл хэрэглэгчтэй эелдгээр харилцаа өрнүүл. 
+    asyncio.create_task(save_message(message['id'], message['data']))
+
+    prompt = """<s>[INST] Өгүүллэг уншаад асуултад хариул. Хэрэв өгүүллэгд багтаагүй хамааралгүй асуулт асуувал мэдэхгүй гэж хариул. Хүний талаар сайн муу гэж дүгнэлт гаргаж болохгүй. Хэрэв хэрэглэгч хэрвээ "Cайн уу", "баярлалаа" гэх мэт энгийн харилцаа өрнүүлэхийг хүсвэл хэрэглэгчтэй эелдгээр харилцаа өрнүүл. 
     Өгүүллэг: """
-    
+
     if(message['id'] == "Usion"):
         prompt = "<s>[INST]" + message['data'] + "[/INST]"
     else:
@@ -83,18 +99,20 @@ async def my_event(sid, message):
         top_p=0.95
     ):
         await sio.emit('my_response', {'data': generation.outputs[0].text}, room=sid)
+        asyncio.create_task(save_message(message['id'], generation.outputs[0].text))
     await sio.emit('my_response', {'data': "<end>"}, room=sid)
 
-# Create an event object to signal when the server is ready
+async def get_all_keys(request):
+    return web.json_response({"keys": list(info_dict.keys())})
+
+app.router.add_get('/all_keys', get_all_keys)
+
 server_ready_event = asyncio.Event()
 
 async def send_initial_message(app):
-    # Wait for the server to be ready
     await server_ready_event.wait()
-    # Send a message with the prompt "Hi" to all connected clients
     await sio.emit('my_response', {'data': 'Hi'})
 
-# Schedule the send_initial_message() function to run after the server starts
 app.on_startup.append(send_initial_message)
 
 if __name__ == '__main__':
