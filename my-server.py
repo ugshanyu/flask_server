@@ -60,20 +60,19 @@ async def disconnect(sid):
 async def save_message(user_id, message):
     save_url = 'http://52.221.164.159/save_message'
     message_id = datetime.datetime.now().strftime("%Y%m%d%H%M%S%f")
-    current_date = datetime.datetime.now()  # Using a datetime object
+    current_date = datetime.datetime.now().isoformat()  # Convert to ISO 8601 format
     data = {
         "userId": user_id,
         "id": message_id,
         "message": message,
-        "date": current_date  # Storing the datetime object
+        "date": current_date  # Use the ISO-formatted string
     }
     async with aiohttp.ClientSession() as session:
         async with session.post(save_url, json=data) as response:
-            if response.status == 200 or response.status == 201:
+            if response.status == 200:
                 print("Message saved successfully")
             else:
                 print(f"Failed to save message: {response.status}")
-
 
 @sio.event
 async def my_event(sid, message):
