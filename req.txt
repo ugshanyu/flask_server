@@ -3,3 +3,4 @@ aiohttp
 openllm
 vllm
 aiohttp
+aiohttp-cors

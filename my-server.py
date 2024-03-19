@@ -7,6 +7,8 @@ import asyncio
 import datetime
 import json
 import datetime
+import aiohttp_cors  # Import the aiohttp_cors library
+
 
 sio = socketio.AsyncServer(async_mode='aiohttp', cors_allowed_origins="*")
 app = web.Application()
@@ -130,6 +132,18 @@ async def get_all_keys(request):
     return web.json_response({"keys": list(info_dict.keys())})
 
 app.router.add_get('/all_keys', get_all_keys)
+
+cors = aiohttp_cors.setup(app, defaults={
+    "*": aiohttp_cors.ResourceOptions(
+        allow_credentials=True,
+        expose_headers="*",
+        allow_headers="*",
+    )
+})
+
+# Add your routes and configure CORS for each route
+resource = cors.add(app.router.add_resource("/all_keys"))
+cors.add(resource.add_route("GET", get_all_keys))
 
 server_ready_event = asyncio.Event()
 
