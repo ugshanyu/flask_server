@@ -84,14 +84,27 @@ async def my_event(sid, message):
 
     prompt = """<s>[INST] Чи бол хиймэл оюунтай ухаалаг туслах бөгөөд чамайг Astvision технологийн баг бүтээж байна. Чиний нэрийг MongolGPT гэдэг. \n Өгүүллэгийг уншаад асуултад хариул. \n Хэрэв өгүүллэгт багтаагүй хамааралгүй асуулт асуувал мэдэхгүй гэж хариул. \n Хүний талаар сайн муу гэж дүгнэлт гаргаж болохгүй. \n Хэрэв хэрэглэгч хэрвээ "Cайн уу", "баярлалаа" гэх мэт энгийн харилцаа өрнүүлэхийг хүсвэл хэрэглэгчтэй эелдгээр харилцаа өрнүүл.\n Өгүүллэг: """
 
-    if(message['id'] == "Usion"):
+    if message['id'] == "Usion":
         prompt = "<s>[INST]" + message['data'] + "[/INST]"
     else:
         input_string = message['data']
-        top_keys = get_top_keys(input_string, string_list, top_n=1)
-        print(f"The top 2 keys for '{input_string}' are {top_keys}")
-        for key in top_keys:
-            prompt += info_dict[key] + "\n\n"
+        if 'keys' in message and message['keys']:
+            keys = message['keys']
+            for key in keys:
+                if key in info_dict:
+                    print(f"Mentioned key'{key}'")
+                    prompt += info_dict[key] + "\n\n"
+                else:
+                    top_keys = get_top_keys(input_string, string_list, top_n=1)
+                    print(f"The top key for '{input_string}' is {top_keys}")
+                    for top_key in top_keys:
+                        prompt += info_dict[top_key] + "\n\n"
+                    break
+        else:
+            top_keys = get_top_keys(input_string, string_list, top_n=1)
+            print(f"The top key for '{input_string}' is {top_keys}")
+            for key in top_keys:
+                prompt += info_dict[key] + "\n\n"
         prompt += "Асуулт: " + input_string + " [/INST]"
         print(prompt)
     generated = ""
