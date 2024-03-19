@@ -131,7 +131,7 @@ async def all_at_once(sid, message):
 async def get_all_keys(request):
     return web.json_response({"keys": list(info_dict.keys())})
 
-app.router.add_get('/all_keys', get_all_keys)
+# app.router.add_get('/all_keys', get_all_keys)
 
 cors = aiohttp_cors.setup(app, defaults={
     "*": aiohttp_cors.ResourceOptions(
