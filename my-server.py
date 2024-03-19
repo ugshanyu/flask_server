@@ -133,6 +133,11 @@ async def get_all_keys(request):
 
 # app.router.add_get('/all_keys', get_all_keys)
 
+async def fetch_info_dict_route(request):
+    info_dict = await fetch_info_dict()
+    return web.json_response(info_dict)
+
+
 cors = aiohttp_cors.setup(app, defaults={
     "*": aiohttp_cors.ResourceOptions(
         allow_credentials=True,
@@ -141,9 +146,15 @@ cors = aiohttp_cors.setup(app, defaults={
     )
 })
 
+
 # Add your routes and configure CORS for each route
 resource = cors.add(app.router.add_resource("/all_keys"))
 cors.add(resource.add_route("GET", get_all_keys))
+
+# Add your routes and configure CORS for each route
+fetch_info_dict_resource = cors.add(app.router.add_resource("/fetch_info_dict"))
+cors.add(fetch_info_dict_resource.add_route("GET", fetch_info_dict_route))
+
 
 server_ready_event = asyncio.Event()
 
