@@ -112,18 +112,18 @@ async def all_at_once(sid, message):
 
     prompt = "<s>[INST]" + message['data'] + "[/INST]"
 
-    responses = []
+    responses = ""
     async for generation in llm.generate_iterator(
         prompt,
         max_new_tokens=1024,
         temperature=0.5,
         top_p=0.95
     ):
-        responses.append(generation.outputs[0].text)
+        responses += generation.outputs[0].text
 
-    combined_response = "\n".join(responses)
-    asyncio.create_task(save_message("school", prompt + "\n" + combined_response, generated_message_id))
-    await sio.emit('my_response_all_at_once', {'data': combined_response, 'message_id': generated_message_id}, room=sid)
+    # combined_response = "\n".join(responses)
+    asyncio.create_task(save_message("school", prompt + "\n" + responses, generated_message_id))
+    await sio.emit('my_response_all_at_once', {'data': responses, 'message_id': generated_message_id}, room=sid)
 
 
 async def get_all_keys(request):
