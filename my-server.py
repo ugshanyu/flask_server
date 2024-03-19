@@ -147,7 +147,9 @@ async def get_all_keys(request):
 # app.router.add_get('/all_keys', get_all_keys)
 
 async def fetch_info_dict_route(request):
+    global info_dict
     info_dict = await fetch_info_dict()
+    print("updated")
     return web.json_response(info_dict)
 
 
