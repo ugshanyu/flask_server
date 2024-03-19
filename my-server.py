@@ -95,7 +95,7 @@ async def my_event(sid, message):
     generated = ""
     async for generation in llm.generate_iterator(
         prompt,
-        max_new_tokens=512,
+        max_new_tokens=1024,
         temperature=0.5,
         top_p=0.95
     ):
@@ -103,6 +103,28 @@ async def my_event(sid, message):
         generated += generation.outputs[0].text
     asyncio.create_task(save_message(message['id'], prompt + "\n" + generated, generated_message_id))
     await sio.emit('my_response', {'data': "<end>", 'message_id': generated_message_id}, room=sid)
+
+@sio.event
+async def all_at_once(sid, message):
+    print("User said: " + message['data'])
+    generated_message_id = datetime.datetime.now().strftime("%Y%m%d%H%M%S%f") + message['id']
+    asyncio.create_task(save_message(message['id'], message['data'], generated_message_id))
+
+    prompt = "<s>[INST]" + message['data'] + "[/INST]"
+
+    responses = []
+    async for generation in llm.generate_iterator(
+        prompt,
+        max_new_tokens=1024,
+        temperature=0.5,
+        top_p=0.95
+    ):
+        responses.append(generation.outputs[0].text)
+
+    combined_response = "\n".join(responses)
+    asyncio.create_task(save_message("school", prompt + "\n" + combined_response, generated_message_id))
+    await sio.emit('my_response_all_at_once', {'data': combined_response, 'message_id': generated_message_id}, room=sid)
+
 
 async def get_all_keys(request):
     return web.json_response({"keys": list(info_dict.keys())})
