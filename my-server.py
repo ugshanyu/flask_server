@@ -57,13 +57,12 @@ async def connect(sid, environ):
 async def disconnect(sid):
     print('User disconnected:', sid)
 
-async def save_message(user_id, message):
+async def save_message(user_id, message, generated_message_id):
     save_url = 'http://52.221.164.159/save_message'
-    message_id = datetime.datetime.now().strftime("%Y%m%d%H%M%S%f")
     current_date = datetime.datetime.now().isoformat()  # Convert to ISO 8601 format
     data = {
         "userId": user_id,
-        "id": message_id,
+        "id": generated_message_id,
         "message": message,
         "date": current_date  # Use the ISO-formatted string
     }
@@ -78,8 +77,8 @@ async def save_message(user_id, message):
 async def my_event(sid, message):
     print("User said: " + message['data'])
     print("User id: " + message['id'])
-
-    asyncio.create_task(save_message(message['id'], message['data']))
+    generated_message_id = datetime.datetime.now().strftime("%Y%m%d%H%M%S%f") + message['id']
+    asyncio.create_task(save_message(message['id'], message['data'], generated_message_id))
 
     prompt = """<s>[INST] Өгүүллэгийг уншаад асуултад хариул. \n Хэрэв өгүүллэгт багтаагүй хамааралгүй асуулт асуувал мэдэхгүй гэж хариул. \n Хүний талаар сайн муу гэж дүгнэлт гаргаж болохгүй. \n Хэрэв хэрэглэгч хэрвээ "Cайн уу", "баярлалаа" гэх мэт энгийн харилцаа өрнүүлэхийг хүсвэл хэрэглэгчтэй эелдгээр харилцаа өрнүүл.\n Өгүүллэг: """
 
@@ -102,8 +101,8 @@ async def my_event(sid, message):
     ):
         await sio.emit('my_response', {'data': generation.outputs[0].text}, room=sid)
         generated += generation.outputs[0].text
-    asyncio.create_task(save_message(message['id'], generated))
-    await sio.emit('my_response', {'data': "<end>"}, room=sid)
+    asyncio.create_task(save_message(message['id'], prompt + "\n" + generated, generated_message_id))
+    await sio.emit('my_response', {'data': "<end>", 'message_id': generated_message_id}, room=sid)
 
 async def get_all_keys(request):
     return web.json_response({"keys": list(info_dict.keys())})
