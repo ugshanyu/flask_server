@@ -117,7 +117,7 @@ async def my_event(sid, message):
         await sio.emit('my_response', {'data': generation.outputs[0].text}, room=sid)
         generated += generation.outputs[0].text
     asyncio.create_task(save_message(message['id'], prompt + "\n" + generated, generated_message_id))
-    if 'keys' in message and message['keys'] == 'МОНЦЕО':
+    if 'keys' in message and message['keys'] == ['МОНЦЕО']:
         await sio.emit('my_response', {'data': "<<https://old.shilen.gov.mn/organization/2772787>>", 'message_id': generated_message_id}, room=sid)
     await sio.emit('my_response', {'data': "<end>", 'message_id': generated_message_id}, room=sid)
 
