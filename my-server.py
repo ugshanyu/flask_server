@@ -14,7 +14,7 @@ sio = socketio.AsyncServer(async_mode='aiohttp', cors_allowed_origins="*")
 app = web.Application()
 sio.attach(app)
 
-llm = openllm.LLM('ugshanyu/mongol-mistral-3')
+llm = openllm.LLM('ugshanyu/new_tokenizer_trained_on_book_dataset')
 
 def get_top_keys(sentence, keys, top_n=2):
     sentence = sentence.lower()
