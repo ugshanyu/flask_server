@@ -123,7 +123,7 @@ async def my_event(sid, message):
     # if 'keys' in message and message['keys'] == ['МОНЦЕО']:
     #     await sio.emit('my_response', {'data': "<<https://old.shilen.gov.mn/organization/2772787>>", 'message_id': generated_message_id}, room=sid)
     if (detail_link != ""):
-        new_detail_link = f'\n Та дэлгэрэнгүй мэдээллийг <a href="{detail_link}"?type=INTRODUCTION">энэ холбоос руу</a> орж үзнэ үү.'
+        new_detail_link = f'\n Та дэлгэрэнгүй мэдээллийг <a href="{detail_link}"?type=INTRODUCTION" target="_blank">энэ холбоос руу</a> орж үзнэ үү.'
         await sio.emit('my_response', {'data': new_detail_link, 'message_id': generated_message_id}, room=sid)    
     await sio.emit('my_response', {'data': "<end>", 'message_id': generated_message_id}, room=sid)
 
