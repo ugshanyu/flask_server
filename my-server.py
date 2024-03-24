@@ -81,7 +81,7 @@ async def my_event(sid, message):
     print("User id: " + message['id'])
     generated_message_id = datetime.datetime.now().strftime("%Y%m%d%H%M%S%f") + message['id']
     asyncio.create_task(save_message(message['id'], message['data'], generated_message_id))
-
+    detail_link = ""
     prompt = """<s>[INST] Чи бол хиймэл оюунтай ухаалаг эелдэг, сайхан сэтгэлтэй туслах. Чиний нэрийг MongolGPT гэдэг. Чамайг Аствишн компани бүтээсэн. \n\n Өгүүллэгийг уншаад асуултад хариул. \n Хэрэв өгүүллэгт багтаагүй эсвэл хамааралгүй асуулт асуувал мэдэхгүй гэж хариул. Хүний талаар сайн муу гэж дүгнэлт гаргаж болохгүй. Хэрэв асуулт нь асуулт биш бол харилцан яриа өрнүүл. \n Өгүүллэг: """
     addition = ""
     if message['id'] == "Usion":
@@ -94,6 +94,8 @@ async def my_event(sid, message):
                 if key in info_dict:
                     print(f"Mentioned key'{key}'")
                     prompt += info_dict[key]['value'] + "\n\n"
+                    if info_dict[key]["entityRegistryNumber"] != "null":
+                        detail_link = f"<<https://shilen.gov.mn/legal-entity/{info_dict[key]["entityRegistryNumber"]}?type=INTRODUCTION>>"
                 else:
                     top_keys = get_top_keys(input_string, string_list, top_n=1)
                     print(f"The top key for '{input_string}' is {top_keys}")
@@ -105,6 +107,7 @@ async def my_event(sid, message):
             print(f"The top key for '{input_string}' is {top_keys}")
             for key in top_keys:
                 prompt += info_dict[key]['value'] + "\n\n"
+            detail_link = f"<<https://shilen.gov.mn/legal-entity/{info_dict[top_keys[0]]["entityRegistryNumber"]}?type=INTRODUCTION>>"
         prompt += "Асуулт: " + input_string + " [/INST]"
         print(prompt)
     generated = ""
@@ -119,6 +122,8 @@ async def my_event(sid, message):
     asyncio.create_task(save_message(message['id'], prompt + "\n" + generated, generated_message_id))
     if 'keys' in message and message['keys'] == ['МОНЦЕО']:
         await sio.emit('my_response', {'data': "<<https://old.shilen.gov.mn/organization/2772787>>", 'message_id': generated_message_id}, room=sid)
+    if (detail_link != ""):
+        await sio.emit('my_response', {'data': detail_link, 'message_id': generated_message_id}, room=sid)    
     await sio.emit('my_response', {'data': "<end>", 'message_id': generated_message_id}, room=sid)
 
 @sio.event
