@@ -91,6 +91,8 @@ async def my_event(sid, message):
         if 'keys' in message and message['keys']:
             keys = message['keys']
             for key in keys:
+                if 'company' in info_dict[key]:
+                    info_dict[key]['company']
                 if key in info_dict:
                     print(f"Mentioned key'{key}'")
                     prompt += info_dict[key] + "\n\n"
