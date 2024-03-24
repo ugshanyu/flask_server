@@ -28,7 +28,7 @@ def get_top_keys(sentence, keys, top_n=2):
     return top_keys
 
 async def fetch_info_dict():
-    url = 'https://huggingface.co/datasets/ugshanyu/TungalagTamir/raw/main/test'
+    url = 'https://huggingface.co/datasets/ugshanyu/TungalagTamir/resolve/main/test'
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as response:
             if response.status == 200:
