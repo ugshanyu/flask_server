@@ -95,7 +95,7 @@ async def my_event(sid, message):
                     print(f"Mentioned key'{key}'")
                     prompt += info_dict[key]['value'] + "\n\n"
                     if info_dict[key]["entityRegistryNumber"] != "null":
-                        detail_link = f"<<https://shilen.gov.mn/legal-entity/{info_dict[key]["entityRegistryNumber"]}?type=INTRODUCTION>>"
+                        detail_link = f"<<https://shilen.gov.mn/legal-entity/{info_dict[key]['entityRegistryNumber']}?type=INTRODUCTION>>"
                 else:
                     top_keys = get_top_keys(input_string, string_list, top_n=1)
                     print(f"The top key for '{input_string}' is {top_keys}")
@@ -107,7 +107,7 @@ async def my_event(sid, message):
             print(f"The top key for '{input_string}' is {top_keys}")
             for key in top_keys:
                 prompt += info_dict[key]['value'] + "\n\n"
-            detail_link = f"<<https://shilen.gov.mn/legal-entity/{info_dict[top_keys[0]]["entityRegistryNumber"]}?type=INTRODUCTION>>"
+            detail_link = f"[https://shilen.gov.mn/legal-entity/{info_dict[top_keys[0]]['entityRegistryNumber']}?type=INTRODUCTION](https://shilen.gov.mn/legal-entity/{info_dict[top_keys[0]]['entityRegistryNumber']}?type=INTRODUCTION)"
         prompt += "Асуулт: " + input_string + " [/INST]"
         print(prompt)
     generated = ""
