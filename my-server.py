@@ -74,6 +74,146 @@ async def save_message(user_id, message, generated_message_id):
                 print("Message saved successfully")
             else:
                 print(f"Failed to save message: {response.status}")
+import torch
+import numpy as np
+import nltk
+import re
+import PyPDF2
+import socketio
+import time
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score
+import torch.nn.functional as F
+from transformers import AutoTokenizer, AutoModelForMaskedLM
+import os
+
+nltk.download('punkt')
+
+def load_pdf_text(pdf_path):
+    """Loads text content from each page of a PDF."""
+    with open(pdf_path, 'rb') as file:
+        reader = PyPDF2.PdfReader(file)
+        page_texts = [page.extract_text() for page in reader.pages]
+    return page_texts
+
+def clean_text(text):
+    text = re.sub(r'http\S+', '', text)
+    text = re.sub(r'\s+', ' ', text)
+    pattern = re.compile('[^а-яА-ЯүөҮӨ,. 1 2 3 4  5 6 7 8 9 0 a-zA-Z\s]')
+    cleaned_text = re.sub(pattern, '', text)
+    return cleaned_text
+
+def embedding(pdf_path):
+    embedding_file_path = os.path.splitext(pdf_path)[0] + ".npy"
+    
+    if os.path.exists(embedding_file_path):
+        return embedding_file_path
+    else:
+        page_texts = load_pdf_text(pdf_path)
+        cleaned_text = ' '.join(clean_text(page_text) for page_text in page_texts)
+        sentences = nltk.sent_tokenize(cleaned_text)
+        max_chunk_length = 1000
+        
+        text_chunks = []
+        current_chunk = ""
+        
+        for sentence in sentences:
+            if len(current_chunk) + len(sentence) <= max_chunk_length:
+                current_chunk += sentence + " "
+            else:
+                text_chunks.append(current_chunk.strip())
+                current_chunk = sentence + " "
+        
+        if current_chunk:
+            text_chunks.append(current_chunk.strip())
+        
+        tokenizer = AutoTokenizer.from_pretrained('intfloat/multilingual-e5-large')
+        model = AutoModelForMaskedLM.from_pretrained("intfloat/multilingual-e5-large")
+        
+        chunk_embeddings = [encode_text([chunk], tokenizer, model) for chunk in text_chunks]
+        chunk_embeddings_array = np.vstack([embedding.numpy() for embedding in chunk_embeddings])
+        np.save(embedding_file_path, chunk_embeddings_array)
+    
+    return embedding_file_path
+
+def encode_text(texts, tokenizer, model):
+    encoded_texts = tokenizer(texts, padding=True, truncation=True, return_tensors='pt')
+    with torch.no_grad():
+        input_ids = encoded_texts['input_ids']
+        attention_mask = encoded_texts['attention_mask']
+        outputs = model.base_model(input_ids=input_ids, attention_mask=attention_mask)
+        embeddings = outputs.last_hidden_state  # Get the embeddings from the output
+        pooled_embedding = torch.mean(embeddings, dim=1)  # Mean pooling over tokens
+        normalized_embedding = F.normalize(pooled_embedding, p=2, dim=1)
+    return normalized_embedding
+
+def mongolchat(text):
+    sio = socketio.Client()
+    response_data = None
+
+    @sio.event
+    def connect():
+        pass
+
+    @sio.event
+    def disconnect():
+        pass
+
+    @sio.on('*')
+    def catch_all(event, data):
+        if 'data' in data:
+            nonlocal response_data
+            response_data = data['data']
+            sio.disconnect()
+
+    sio.connect('http://202.70.34.27:8081')
+    sio.emit('all_at_once', {"data": text, "id": 'all'})
+    while response_data is None:
+        time.sleep(1)
+
+    return response_data
+
+def ask_mongol_chat(question, pdf_path):
+    embedding_file_path = embedding(pdf_path)
+    chunk_embeddings_arrays = np.load(embedding_file_path)
+    tokenizer = AutoTokenizer.from_pretrained('intfloat/multilingual-e5-large')
+    model = AutoModelForMaskedLM.from_pretrained("intfloat/multilingual-e5-large")
+    
+    page_texts = load_pdf_text(pdf_path)
+    cleaned_text = ' '.join(clean_text(page_text) for page_text in page_texts)
+    sentences = nltk.sent_tokenize(cleaned_text)
+    max_chunk_length = 1000
+        
+    text_chunks = []
+    current_chunk = ""
+        
+    for sentence in sentences:
+        if len(current_chunk) + len(sentence) <= max_chunk_length:
+            current_chunk += sentence + " "
+        else:
+            text_chunks.append(current_chunk.strip())
+            current_chunk = sentence + " "
+        
+    if current_chunk:
+        text_chunks.append(current_chunk.strip())
+
+    question_embedding = encode_text([question], tokenizer, model)   
+    cos_similarities = []
+    for chunk_embedding in chunk_embeddings_arrays:
+        chunk_embedding_tensor = torch.tensor(chunk_embedding)
+        cos_sim = F.cosine_similarity(question_embedding, chunk_embedding_tensor)
+        cos_similarities.append(cos_sim.item())
+    closest_chunk_indices = sorted(range(len(cos_similarities)), key=lambda i: cos_similarities[i], reverse=True)[:3]
+
+    closest_sections = [text_chunks[index] for index in closest_chunk_indices]
+    closest_sections_str = '\n\n'.join(closest_sections)
+    template_content = "Чи бол хиймэл оюунтай ухаалаг эелдэг, сайхан сэтгэлтэй туслах. \n\n Дээрх агуулгыг уншаад асуултад хариул. \n Хэрэв өгүүллэгт багтаагүй эсвэл хамааралгүй асуулт асуувал мэдэхгүй гэж хариул. Хүний талаар сайн муу гэж дүгнэлт гаргаж болохгүй. Хэрэв асуулт нь асуулт биш бол харилцан яриа өрнүүл.  Асуулт: {question} "
+    output_value = closest_sections_str + '\n\n' + template_content.format(question=question)
+
+    return output_value
+
+# pdf_path = "Аствишин.pdf"
+# embedding_file_path = embedding(pdf_path)
 
 @sio.event
 async def my_event(sid, message):
@@ -86,6 +226,10 @@ async def my_event(sid, message):
     addition = ""
     if message['id'] == "Usion":
         prompt = "<s>[INST]" + message['data'] + "[/INST]"
+    elif message['id'] == "Ast":
+        pdf_path = "Аствишин.pdf"
+        embedding_file_path = embedding(pdf_path)
+        prompt = ask_mongol_chat(message['data'], pdf_path)
     else:
         input_string = message['data']
         if 'keys' in message and message['keys']:
