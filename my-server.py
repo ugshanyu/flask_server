@@ -15,6 +15,7 @@ app = web.Application()
 sio.attach(app)
 
 llm = openllm.LLM('ugshanyu/mongol-mistral-3')
+# llm = openllm.LLM('meta-llama/Meta-Llama-3-8B-Instruct')
 
 def get_top_keys(sentence, keys, top_n=2):
     sentence = sentence.lower()
